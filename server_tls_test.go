@@ -103,18 +103,18 @@ IEiAeSZ1uoXSPNCU8EZsAfCagTUQ
 
 // TestTLSServer tests the TLS layer of the modbus server.
 func TestTLSServer(t *testing.T) {
-	var err            error
-	var server         *ModbusServer
-	var serverKeyPair  tls.Certificate
+	var err error
+	var server *ModbusServer
+	var serverKeyPair tls.Certificate
 	var client1KeyPair tls.Certificate
 	var client2KeyPair tls.Certificate
-	var clientCp       *x509.CertPool
-	var serverCp       *x509.CertPool
-	var th	           *tlsTestHandler
-	var c1	           *ModbusClient
-	var c2	           *ModbusClient
-	var regs           []uint16
-	var coils          []bool
+	var clientCp *x509.CertPool
+	var serverCp *x509.CertPool
+	var th *tlsTestHandler
+	var c1 *ModbusClient
+	var c2 *ModbusClient
+	var regs []uint16
+	var coils []bool
 
 	th = &tlsTestHandler{}
 
@@ -169,7 +169,7 @@ func TestTLSServer(t *testing.T) {
 	}
 
 	// create 2 modbus clients
-	c1, err	= NewClient(&ClientConfiguration{
+	c1, err = NewClient(&ClientConfiguration{
 		URL:           "tcp+tls://localhost:5802",
 		TLSClientCert: &client1KeyPair,
 		TLSRootCAs:    clientCp,
@@ -177,7 +177,7 @@ func TestTLSServer(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create client: %v", err)
 	}
-	c2, err	= NewClient(&ClientConfiguration{
+	c2, err = NewClient(&ClientConfiguration{
 		URL:           "tcp+tls://localhost:5802",
 		TLSClientCert: &client2KeyPair,
 		TLSRootCAs:    clientCp,
@@ -308,8 +308,6 @@ func TestTLSServer(t *testing.T) {
 	// cleanup
 	c1.Close()
 	c2.Close()
-
-	return
 }
 
 type tlsTestHandler struct {
@@ -326,16 +324,16 @@ func (th *tlsTestHandler) HandleCoils(req *CoilsRequest) (res []bool, err error)
 		return
 	}
 
-	if req.Addr + req.Quantity > uint16(len(th.coils)) {
+	if req.Addr+req.Quantity > uint16(len(th.coils)) {
 		err = ErrIllegalDataAddress
 		return
 	}
 
 	for i := 0; i < int(req.Quantity); i++ {
 		if req.IsWrite {
-			th.coils[int(req.Addr) + i] = req.Args[i]
+			th.coils[int(req.Addr)+i] = req.Args[i]
 		}
-		res = append(res, th.coils[int(req.Addr) + i])
+		res = append(res, th.coils[int(req.Addr)+i])
 	}
 
 	return
@@ -351,36 +349,37 @@ func (th *tlsTestHandler) HandleDiscreteInputs(req *DiscreteInputsRequest) (res 
 func (th *tlsTestHandler) HandleHoldingRegisters(req *HoldingRegistersRequest) (res []uint16, err error) {
 	// gate unit id #4 behind the "operator2" role while access to unit id #1
 	// is allowed to any valid cert
-	if req.UnitId == 0x04 {
+	switch req.UnitId {
+	case 0x04:
 		if req.ClientRole != "operator2" {
 			err = ErrIllegalFunction
 			return
 		}
 
-		if req.Addr + req.Quantity > uint16(len(th.holdingId4)) {
+		if req.Addr+req.Quantity > uint16(len(th.holdingId4)) {
 			err = ErrIllegalDataAddress
 			return
 		}
 
 		for i := 0; i < int(req.Quantity); i++ {
 			if req.IsWrite {
-				th.holdingId4[int(req.Addr) + i] = req.Args[i]
+				th.holdingId4[int(req.Addr)+i] = req.Args[i]
 			}
-			res = append(res, th.holdingId4[int(req.Addr) + i])
+			res = append(res, th.holdingId4[int(req.Addr)+i])
 		}
-	} else if req.UnitId == 0x01 {
-		if req.Addr + req.Quantity > uint16(len(th.holdingId1)) {
+	case 0x01:
+		if req.Addr+req.Quantity > uint16(len(th.holdingId1)) {
 			err = ErrIllegalDataAddress
 			return
 		}
 
 		for i := 0; i < int(req.Quantity); i++ {
 			if req.IsWrite {
-				th.holdingId1[int(req.Addr) + i] = req.Args[i]
+				th.holdingId1[int(req.Addr)+i] = req.Args[i]
 			}
-			res = append(res, th.holdingId1[int(req.Addr) + i])
+			res = append(res, th.holdingId1[int(req.Addr)+i])
 		}
-	} else {
+	default:
 		err = ErrIllegalFunction
 		return
 	}
@@ -396,11 +395,11 @@ func (th *tlsTestHandler) HandleInputRegisters(req *InputRegistersRequest) (res 
 }
 
 func TestServerExtractRole(t *testing.T) {
-	var ms       *ModbusServer
+	var ms *ModbusServer
 	var pemBlock *pem.Block
 	var x509Cert *x509.Certificate
-	var err      error
-	var role     string
+	var err error
+	var role string
 
 	ms = &ModbusServer{
 		logger: newLogger("test-server-role-extraction", nil),
@@ -408,10 +407,11 @@ func TestServerExtractRole(t *testing.T) {
 
 	// load a client cert without role OID
 	pemBlock, _ = pem.Decode([]byte(clientCert))
-	if err != nil {
-		t.Errorf("failed to decode client cert: %v", err)
-		return
-	}
+	// TODO review impossible condition
+	// if err != nil {
+	// 	t.Errorf("failed to decode client cert: %v", err)
+	// 	return
+	// }
 
 	x509Cert, err = x509.ParseCertificate(pemBlock.Bytes)
 	if err != nil {
@@ -428,10 +428,11 @@ func TestServerExtractRole(t *testing.T) {
 
 	// load a certificate with a single role extension of "operator2"
 	pemBlock, _ = pem.Decode([]byte(clientCertWithRoleOID))
-	if err != nil {
-		t.Errorf("failed to decode client cert: %v", err)
-		return
-	}
+	// TODO review impossible condition
+	// if err != nil {
+	// 	t.Errorf("failed to decode client cert: %v", err)
+	// 	return
+	// }
 
 	x509Cert, err = x509.ParseCertificate(pemBlock.Bytes)
 	if err != nil {
@@ -449,7 +450,7 @@ func TestServerExtractRole(t *testing.T) {
 	x509Cert = &x509.Certificate{
 		Extensions: []pkix.Extension{
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x0c, 0x04, 0x66, 0x77, 0x67, 0x78,
 					// ^ ASN1:UTF8String
@@ -458,7 +459,7 @@ func TestServerExtractRole(t *testing.T) {
 				},
 			},
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x0c, 0x02, 0x66, 0x67,
 					// ^ ASN1:UTF8String
@@ -479,7 +480,7 @@ func TestServerExtractRole(t *testing.T) {
 	x509Cert = &x509.Certificate{
 		Extensions: []pkix.Extension{
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x13, 0x04, 0x66, 0x77, 0x67, 0x78,
 					// ^ ASN1:PrintableString
@@ -500,7 +501,7 @@ func TestServerExtractRole(t *testing.T) {
 	x509Cert = &x509.Certificate{
 		Extensions: []pkix.Extension{
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x0c,
 					// ^ ASN1:UTF8String
@@ -520,7 +521,7 @@ func TestServerExtractRole(t *testing.T) {
 	x509Cert = &x509.Certificate{
 		Extensions: []pkix.Extension{
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x0c,
 					// ^ ASN1:UTF8String
@@ -528,7 +529,7 @@ func TestServerExtractRole(t *testing.T) {
 				},
 			},
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x0c, 0x02, 0x66, 0x67,
 					// ^ ASN1:UTF8String
@@ -549,7 +550,7 @@ func TestServerExtractRole(t *testing.T) {
 	x509Cert = &x509.Certificate{
 		Extensions: []pkix.Extension{
 			{
-				Id:    modbusRoleOID,
+				Id: modbusRoleOID,
 				Value: []byte{
 					0x0c, 0x04, 0x66, 0x77, 0x67, 0x78,
 					// ^ ASN1:UTF8String
@@ -564,6 +565,4 @@ func TestServerExtractRole(t *testing.T) {
 	if role != "fwgx" {
 		t.Errorf("role should have been 'fwgx', got: '%s'", role)
 	}
-
-	return
 }
