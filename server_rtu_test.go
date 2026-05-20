@@ -9,7 +9,7 @@ func TestCRCReturnNilIfMessageIsValid(t *testing.T) {
 
 	var result = messageIsValid(message)
 	if result != nil {
-		t.Errorf("Expecting nil, sice CRC is correct!")
+		t.Errorf("Expecting nil, since CRC is correct!")
 	}
 }
 
@@ -18,7 +18,7 @@ func TestCRCReturnErrorIfMessageIsInvalid(t *testing.T) {
 
 	var result = messageIsValid(message)
 	if result == nil {
-		t.Errorf("Expecting error, sice CRC is correct!")
+		t.Errorf("Expecting error, since CRC is correct!")
 	}
 }
 

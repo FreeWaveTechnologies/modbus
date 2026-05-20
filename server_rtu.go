@@ -159,8 +159,6 @@ func (ms *ModbusRtuServer) sendErrorMessage(originalMessage []byte, errorCode ui
 	if _, err := ms.port.Write(errorMsg); err != nil {
 		ms.logger.Errorf("Send answer failed! (%v)", err)
 	}
-
-	return
 }
 
 func (ms *ModbusRtuServer) listenAndServe() {
@@ -219,18 +217,18 @@ func (ms *ModbusRtuServer) listenAndServe() {
 			continue
 		}
 
-		switch raw.(type) {
+		switch raw := raw.(type) {
 		case CoilsRequest:
-			request := raw.(CoilsRequest)
+			request := raw
 			response, err = ms.handler.HandleCoils(&request)
 		case DiscreteInputsRequest:
-			request := raw.(DiscreteInputsRequest)
+			request := raw
 			response, err = ms.handler.HandleDiscreteInputs(&request)
 		case HoldingRegistersRequest:
-			request := raw.(HoldingRegistersRequest)
+			request := raw
 			response, err = ms.handler.HandleHoldingRegisters(&request)
 		case InputRegistersRequest:
-			request := raw.(InputRegistersRequest)
+			request := raw
 			response, err = ms.handler.HandleInputRegisters(&request)
 		default:
 			err = fmt.Errorf("Function code not implemented!")
@@ -260,7 +258,7 @@ func (ms *ModbusRtuServer) listenAndServe() {
 			ms.logger.Errorf("Send answer failed! (%v)", err)
 		}
 
-		// Request executed and answer sent. Ready to receivce next message.
+		// Request executed and answer sent. Ready to receive next message.
 		receivedData = nil
 	}
 }
