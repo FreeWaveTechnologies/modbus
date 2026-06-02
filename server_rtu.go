@@ -165,8 +165,8 @@ func (ms *ModbusRtuServer) listenAndServe() {
 	if !ms.started {
 		return
 	}
-	ms.lock.Lock()
-	defer ms.lock.Unlock()
+	// ms.lock.Lock()
+	// defer ms.lock.Unlock()
 
 	// Receive strategy is as follow:
 	// Read single byte after byte. If pause time between two bytes is longer than minimal
