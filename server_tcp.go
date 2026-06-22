@@ -191,6 +191,17 @@ func NewTcpServer(conf *TcpServerConfig, reqHandler RequestHandler) (
 
 		ms.transportType = modbusTCP
 
+	case "rtuovertcp":
+		if ms.conf.Timeout == 0 {
+			ms.conf.Timeout = 120 * time.Second
+		}
+
+		if ms.conf.MaxClients == 0 {
+			ms.conf.MaxClients = 10
+		}
+
+		ms.transportType = modbusRTUOverTCP
+
 	case "tcp+tls":
 		if ms.conf.Timeout == 0 {
 			ms.conf.Timeout = 120 * time.Second
@@ -235,7 +246,7 @@ func (ms *TcpServer) Start() (err error) {
 	}
 
 	switch ms.transportType {
-	case modbusTCP, modbusTCPOverTLS:
+	case modbusTCP, modbusTCPOverTLS, modbusRTUOverTCP:
 		// bind to a TCP socket
 		ms.tcpListener, err = net.Listen("tcp", ms.conf.URL)
 		if err != nil {
@@ -266,7 +277,8 @@ func (ms *TcpServer) Stop() (err error) {
 
 	ms.started = false
 
-	if ms.transportType == modbusTCP || ms.transportType == modbusTCPOverTLS {
+	if ms.transportType == modbusTCP || ms.transportType == modbusTCPOverTLS ||
+		ms.transportType == modbusRTUOverTCP {
 		// close the server socket if we're listening over TCP
 		err = ms.tcpListener.Close()
 
@@ -336,6 +348,12 @@ func (ms *TcpServer) handleTCPClient(sock net.Conn) {
 		// serve modbus requests over the raw TCP connection
 		ms.handleTransport(
 			newTCPTransport(sock, ms.conf.Timeout, ms.conf.Logger),
+			sock.RemoteAddr().String(), "")
+
+	case modbusRTUOverTCP:
+		// serve modbus RTU requests over the TCP connection
+		ms.handleTransport(
+			newRTUTransport(sock, sock.RemoteAddr().String(), 19200, ms.conf.Timeout, ms.conf.Logger),
 			sock.RemoteAddr().String(), "")
 
 	case modbusTCPOverTLS:

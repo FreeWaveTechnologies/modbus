@@ -113,8 +113,69 @@ func (rt *rtuTransport) ExecuteRequest(req *pdu) (res *pdu, err error) {
 
 // Reads a request from the rtu link.
 func (rt *rtuTransport) ReadRequest() (req *pdu, err error) {
-	// reading requests from RTU links is currently unsupported
-	err = fmt.Errorf("unimplemented")
+	var rxbuf []byte
+	var crc crc
+	var totalBytes int
+
+	err = rt.link.SetDeadline(time.Now().Add(rt.timeout))
+	if err != nil {
+		return
+	}
+
+	rxbuf = make([]byte, maxRTUFrameLength)
+
+	// read unit id and function code
+	_, err = io.ReadFull(rt.link, rxbuf[0:2])
+	if err != nil {
+		return
+	}
+
+	switch rxbuf[1] {
+	case fcReadCoils, fcReadDiscreteInputs, fcReadHoldingRegisters, fcReadInputRegisters,
+		fcWriteSingleCoil, fcWriteSingleRegister:
+		// fixed-length: addr(2) + qty/value(2) + CRC(2)
+		_, err = io.ReadFull(rt.link, rxbuf[2:8])
+		if err != nil {
+			return
+		}
+		totalBytes = 8
+
+	case fcWriteMultipleCoils, fcWriteMultipleRegisters:
+		// addr(2) + qty(2) + bytecount(1), then data(bytecount) + CRC(2)
+		_, err = io.ReadFull(rt.link, rxbuf[2:7])
+		if err != nil {
+			return
+		}
+		dataLen := int(rxbuf[6])
+		if 7+dataLen+2 > maxRTUFrameLength {
+			err = ErrProtocolError
+			return
+		}
+		_, err = io.ReadFull(rt.link, rxbuf[7:7+dataLen+2])
+		if err != nil {
+			return
+		}
+		totalBytes = 7 + dataLen + 2
+
+	default:
+		err = ErrProtocolError
+		return
+	}
+
+	// validate CRC
+	crc.init()
+	crc.add(rxbuf[:totalBytes-2])
+	if !crc.isEqual(rxbuf[totalBytes-2], rxbuf[totalBytes-1]) {
+		rt.logger.Warningf("bad CRC in request from unit %d", rxbuf[0])
+		err = ErrBadCRC
+		return
+	}
+
+	req = &pdu{
+		unitId:       rxbuf[0],
+		functionCode: rxbuf[1],
+		payload:      rxbuf[2 : totalBytes-2],
+	}
 
 	return
 }
