@@ -9,8 +9,8 @@ import (
 	"github.com/goburrow/serial"
 )
 
-type ModbusRtuServer struct {
-	conf    *ModbusRtuServerConfig
+type RtuServer struct {
+	conf    *RtuServerConfig
 	handler RequestHandler
 	lock    sync.Mutex
 	port    serial.Port
@@ -18,7 +18,7 @@ type ModbusRtuServer struct {
 	logger  *logger
 }
 
-type ModbusRtuServerConfig struct {
+type RtuServerConfig struct {
 	// What is my modbus address?
 	// I only listen to messages addressed to me...
 	ModbusAddress uint8
@@ -37,8 +37,8 @@ type ModbusRtuServerConfig struct {
 	Logger *log.Logger
 }
 
-func NewRTUServer(config *ModbusRtuServerConfig, reqHandler RequestHandler) (
-	ms *ModbusRtuServer, err error) {
+func NewRtuServer(config *RtuServerConfig, reqHandler RequestHandler) (
+	ms *RtuServer, err error) {
 
 	if config == nil || reqHandler == nil {
 		err = fmt.Errorf("Config and request handler must not be nil!")
@@ -65,7 +65,7 @@ func NewRTUServer(config *ModbusRtuServerConfig, reqHandler RequestHandler) (
 		config.Parity = "N"
 	}
 
-	ms = &ModbusRtuServer{
+	ms = &RtuServer{
 		conf:    config,
 		handler: reqHandler,
 	}
@@ -75,7 +75,7 @@ func NewRTUServer(config *ModbusRtuServerConfig, reqHandler RequestHandler) (
 	return
 }
 
-func (ms *ModbusRtuServer) Start() (err error) {
+func (ms *RtuServer) Start() (err error) {
 	ms.lock.Lock()
 	defer ms.lock.Unlock()
 
@@ -118,7 +118,7 @@ func (ms *ModbusRtuServer) Start() (err error) {
 	return
 }
 
-func (ms *ModbusRtuServer) Stop() (err error) {
+func (ms *RtuServer) Stop() (err error) {
 	ms.lock.Lock()
 	defer ms.lock.Unlock()
 
@@ -137,14 +137,14 @@ func (ms *ModbusRtuServer) Stop() (err error) {
 	return
 }
 
-func (ms *ModbusRtuServer) messageIsForMe(message []byte) (yes bool) {
+func (ms *RtuServer) messageIsForMe(message []byte) (yes bool) {
 	if message == nil {
 		return false
 	}
 	return message[0] == ms.conf.ModbusAddress
 }
 
-func (ms *ModbusRtuServer) sendErrorMessage(originalMessage []byte, errorCode uint8) {
+func (ms *RtuServer) sendErrorMessage(originalMessage []byte, errorCode uint8) {
 	if originalMessage == nil || !ms.started {
 		return
 	}
@@ -161,7 +161,7 @@ func (ms *ModbusRtuServer) sendErrorMessage(originalMessage []byte, errorCode ui
 	}
 }
 
-func (ms *ModbusRtuServer) listenAndServe() {
+func (ms *RtuServer) listenAndServe() {
 	if !ms.started {
 		return
 	}

@@ -12,7 +12,7 @@ func TestClientCustomLogger(t *testing.T) {
 
 	logger = log.New(&buf, "external-prefix: ", 0)
 
-	_, _ = NewClient(&ClientConfiguration{
+	_, _ = NewClient(&ClientConfig{
 		Logger: logger,
 		URL:    "sometype://sometarget",
 	})
@@ -28,7 +28,7 @@ func TestServerCustomLogger(t *testing.T) {
 
 	logger = log.New(&buf, "external-prefix: ", 0)
 
-	_, _ = NewServer(&ServerConfiguration{
+	_, _ = NewTcpServer(&TcpServerConfig{
 		Logger: logger,
 		URL:    "tcp://",
 	}, nil)

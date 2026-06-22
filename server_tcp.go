@@ -19,7 +19,7 @@ var modbusRoleOID asn1.ObjectIdentifier = asn1.ObjectIdentifier{
 }
 
 // Server configuration object.
-type ServerConfiguration struct {
+type TcpServerConfig struct {
 	// URL defines where to listen at e.g. tcp://[::]:502
 	URL string
 	// Timeout sets the idle session timeout (client connections will
@@ -140,8 +140,8 @@ type RequestHandler interface {
 }
 
 // Modbus server object.
-type ModbusServer struct {
-	conf          ServerConfiguration
+type TcpServer struct {
+	conf          TcpServerConfig
 	logger        *logger
 	lock          sync.Mutex
 	started       bool
@@ -154,12 +154,12 @@ type ModbusServer struct {
 // Returns a new modbus server.
 // reqHandler should be a user-provided handler object satisfying the RequestHandler
 // interface.
-func NewServer(conf *ServerConfiguration, reqHandler RequestHandler) (
-	ms *ModbusServer, err error) {
+func NewTcpServer(conf *TcpServerConfig, reqHandler RequestHandler) (
+	ms *TcpServer, err error) {
 	var serverType string
 	var splitURL []string
 
-	ms = &ModbusServer{
+	ms = &TcpServer{
 		conf:    *conf,
 		handler: reqHandler,
 	}
@@ -226,7 +226,7 @@ func NewServer(conf *ServerConfiguration, reqHandler RequestHandler) (
 }
 
 // Starts accepting client connections.
-func (ms *ModbusServer) Start() (err error) {
+func (ms *TcpServer) Start() (err error) {
 	ms.lock.Lock()
 	defer ms.lock.Unlock()
 
@@ -256,7 +256,7 @@ func (ms *ModbusServer) Start() (err error) {
 }
 
 // Stops accepting new client connections and closes any active session.
-func (ms *ModbusServer) Stop() (err error) {
+func (ms *TcpServer) Stop() (err error) {
 	ms.lock.Lock()
 	defer ms.lock.Unlock()
 
@@ -282,7 +282,7 @@ func (ms *ModbusServer) Stop() (err error) {
 // Accepts new client connections if the configured connection limit allows it.
 // Each connection is served from a dedicated goroutine to allow for concurrent
 // connections.
-func (ms *ModbusServer) acceptTCPClients() {
+func (ms *TcpServer) acceptTCPClients() {
 	var sock net.Conn
 	var err error
 	var accepted bool
@@ -326,7 +326,7 @@ func (ms *ModbusServer) acceptTCPClients() {
 // Once handleTransport() returns (i.e. the connection has either closed, timed
 // out, or an unrecoverable error happened), the TCP socket is closed and removed
 // from the list of active client connections.
-func (ms *ModbusServer) handleTCPClient(sock net.Conn) {
+func (ms *TcpServer) handleTCPClient(sock net.Conn) {
 	var err error
 	var clientRole string
 	var tlsSock net.Conn
@@ -373,7 +373,7 @@ func (ms *ModbusServer) handleTCPClient(sock net.Conn) {
 // For each request read from the transport, performs decoding and validation,
 // calls the user-provided handler, then encodes and writes the response
 // to the transport.
-func (ms *ModbusServer) handleTransport(t transport, clientAddr string, clientRole string) {
+func (ms *TcpServer) handleTransport(t transport, clientAddr string, clientRole string) {
 	var req *pdu
 	var res *pdu
 	var err error
@@ -803,7 +803,7 @@ func (ms *ModbusServer) handleTransport(t transport, clientAddr string, clientRo
 
 // startTLS performs a full TLS handshake (with client authentication) on tcpSock
 // and returns a 'wrapped' clear-text socket suitable for use by the TCP transport.
-func (ms *ModbusServer) startTLS(tcpSock net.Conn) (
+func (ms *TcpServer) startTLS(tcpSock net.Conn) (
 	tlsSock *tls.Conn, clientRole string, err error) {
 	var connState tls.ConnectionState
 
@@ -850,7 +850,7 @@ func (ms *ModbusServer) startTLS(tcpSock net.Conn) (
 // role as a string.
 // If no role extension is found, a nil string is returned (R-23).
 // If multiple or invalid role extensions are found, a nil string is returned (R-65, R-22).
-func (ms *ModbusServer) extractRole(cert *x509.Certificate) (role string) {
+func (ms *TcpServer) extractRole(cert *x509.Certificate) (role string) {
 	var err error
 	var found bool
 	var badCert bool

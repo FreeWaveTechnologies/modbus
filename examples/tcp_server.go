@@ -25,7 +25,7 @@ const (
 
 // run this with go run examples/tcp_server.go
 func main() {
-	var server *modbus.ModbusServer
+	var server *modbus.TcpServer
 	var err error
 	var eh *exampleHandler
 	var ticker *time.Ticker
@@ -34,7 +34,7 @@ func main() {
 	eh = &exampleHandler{}
 
 	// create the server object
-	server, err = modbus.NewServer(&modbus.ServerConfiguration{
+	server, err = modbus.NewTcpServer(&modbus.TcpServerConfig{
 		// listen on localhost port 5502
 		URL: "tcp://localhost:5502",
 		// close idle connections after 30s of inactivity

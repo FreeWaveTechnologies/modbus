@@ -17,8 +17,8 @@ import (
 func main() {
 	var err error
 	var help bool
-	var client *modbus.ModbusClient
-	var config *modbus.ClientConfiguration
+	var client *modbus.Client
+	var config *modbus.ClientConfig
 	var target string
 	var caPath string   // path to TLS CA/server certificate
 	var certPath string // path to TLS client certificate
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	// create and populate the client configuration object
-	config = &modbus.ClientConfiguration{
+	config = &modbus.ClientConfig{
 		URL:      target,
 		Speed:    speed,
 		DataBits: dataBits,
@@ -930,7 +930,7 @@ func parseHexBytes(in string) (out []byte, err error) {
 	return
 }
 
-func performBoolScan(client *modbus.ModbusClient, isCoil bool) {
+func performBoolScan(client *modbus.Client, isCoil bool) {
 	var err error
 	var addr uint32
 	var val bool
@@ -969,7 +969,7 @@ func performBoolScan(client *modbus.ModbusClient, isCoil bool) {
 	return
 }
 
-func performRegisterScan(client *modbus.ModbusClient, isHoldingReg bool) {
+func performRegisterScan(client *modbus.Client, isHoldingReg bool) {
 	var err error
 	var addr uint32
 	var val uint16
@@ -1009,7 +1009,7 @@ func performRegisterScan(client *modbus.ModbusClient, isHoldingReg bool) {
 	return
 }
 
-func performUnitIdScan(client *modbus.ModbusClient) {
+func performUnitIdScan(client *modbus.Client) {
 	var err error
 	var countOk uint
 	var countErr uint
@@ -1048,7 +1048,7 @@ func performUnitIdScan(client *modbus.ModbusClient) {
 	return
 }
 
-func performPing(client *modbus.ModbusClient, count uint16, interval time.Duration) {
+func performPing(client *modbus.Client, count uint16, interval time.Duration) {
 	var err error
 	var okCount uint
 	var timeoutCount uint

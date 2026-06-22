@@ -6,17 +6,17 @@ import (
 )
 
 func TestTCPServerWithConcurrentConnections(t *testing.T) {
-	var server *ModbusServer
+	var server *TcpServer
 	var err error
 	var coils []bool
-	var c1 *ModbusClient
-	var c2 *ModbusClient
-	var c3 *ModbusClient
+	var c1 *Client
+	var c2 *Client
+	var c3 *Client
 	var th *tcpTestHandler
 
 	th = &tcpTestHandler{}
 
-	server, err = NewServer(&ServerConfiguration{
+	server, err = NewTcpServer(&TcpServerConfig{
 		URL:        "tcp://localhost:5502",
 		MaxClients: 2,
 	}, th)
@@ -30,19 +30,19 @@ func TestTCPServerWithConcurrentConnections(t *testing.T) {
 	}
 
 	// create 3 modbus clients
-	c1, err = NewClient(&ClientConfiguration{
+	c1, err = NewClient(&ClientConfig{
 		URL: "tcp://localhost:5502",
 	})
 	if err != nil {
 		t.Errorf("failed to create client: %v", err)
 	}
-	c2, err = NewClient(&ClientConfiguration{
+	c2, err = NewClient(&ClientConfig{
 		URL: "tcp://localhost:5502",
 	})
 	if err != nil {
 		t.Errorf("failed to create client: %v", err)
 	}
-	c3, err = NewClient(&ClientConfiguration{
+	c3, err = NewClient(&ClientConfig{
 		URL: "tcp://localhost:5502",
 	})
 	if err != nil {
@@ -195,16 +195,16 @@ func TestTCPServerWithConcurrentConnections(t *testing.T) {
 }
 
 func TestTCPServerCoilsAndDiscreteInputs(t *testing.T) {
-	var server *ModbusServer
+	var server *TcpServer
 	var err error
 	var coils []bool
 	var dis []bool
-	var client *ModbusClient
+	var client *Client
 	var th *tcpTestHandler
 
 	th = &tcpTestHandler{}
 
-	server, err = NewServer(&ServerConfiguration{
+	server, err = NewTcpServer(&TcpServerConfig{
 		URL:        "tcp://localhost:5504",
 		MaxClients: 2,
 	}, th)
@@ -217,7 +217,7 @@ func TestTCPServerCoilsAndDiscreteInputs(t *testing.T) {
 		t.Errorf("failed to start server: %v", err)
 	}
 
-	client, err = NewClient(&ClientConfiguration{
+	client, err = NewClient(&ClientConfig{
 		URL: "tcp://localhost:5504",
 	})
 	if err != nil {
@@ -361,15 +361,15 @@ func TestTCPServerCoilsAndDiscreteInputs(t *testing.T) {
 }
 
 func TestTCPServerHoldingAndInputRegisters(t *testing.T) {
-	var server *ModbusServer
+	var server *TcpServer
 	var err error
-	var client *ModbusClient
+	var client *Client
 	var th *tcpTestHandler
 	var regs []uint16
 
 	th = &tcpTestHandler{}
 
-	server, err = NewServer(&ServerConfiguration{
+	server, err = NewTcpServer(&TcpServerConfig{
 		URL:        "tcp://localhost:5504",
 		MaxClients: 2,
 	}, th)
@@ -382,7 +382,7 @@ func TestTCPServerHoldingAndInputRegisters(t *testing.T) {
 		t.Errorf("failed to start server: %v", err)
 	}
 
-	client, err = NewClient(&ClientConfiguration{
+	client, err = NewClient(&ClientConfig{
 		URL: "tcp://localhost:5504",
 	})
 	if err != nil {
