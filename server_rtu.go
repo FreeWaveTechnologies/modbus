@@ -380,8 +380,8 @@ func createBytesFromRequest(originalMessage []byte, requestResult any) (result [
 	case fcReadDiscreteInputs:
 		result = append(result, originalMessage[0])
 		result = append(result, originalMessage[1])
-		nofBytes := int(float64(len(requestResult.([]bool)))/8 + 0.5)
-		result = append(result, uint8(nofBytes&0x0F))
+		nofBytes := (len(requestResult.([]bool)) + 7) / 8
+		result = append(result, uint8(nofBytes))
 		for i := 0; i < nofBytes; i++ {
 			byteVal := 0
 			for k := 0; k < 8; k++ {
