@@ -71,6 +71,11 @@ type Client struct {
 	transportType transportType
 }
 
+// GetURL returns the configured target URL without the transport scheme.
+func (mc *Client) GetURL() string {
+	return mc.conf.URL
+}
+
 // NewClient creates, configures and returns a modbus client object.
 func NewClient(conf *ClientConfig) (mc *Client, err error) {
 	var clientType string
@@ -332,6 +337,8 @@ func (mc *Client) Close() (err error) {
 
 	return
 }
+
+
 
 // Sets the unit id of subsequent requests.
 func (mc *Client) SetUnitId(id uint8) (err error) {

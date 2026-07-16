@@ -22,6 +22,17 @@ func TestClientCustomLogger(t *testing.T) {
 	}
 }
 
+func TestClientGetURL(t *testing.T) {
+	client, err := NewClient(&ClientConfig{URL: "tcp://plc:502"})
+	if err != nil {
+		t.Fatalf("NewClient() failed: %v", err)
+	}
+
+	if got := client.GetURL(); got != "plc:502" {
+		t.Fatalf("unexpected URL: %s", got)
+	}
+}
+
 func TestServerCustomLogger(t *testing.T) {
 	var buf bytes.Buffer
 	var logger *log.Logger
