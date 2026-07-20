@@ -402,7 +402,7 @@ func createBytesFromRequest(originalMessage []byte, requestResult any) (result [
 		result = append(result, originalMessage[0])
 		result = append(result, originalMessage[1])
 		nofBytes := len(requestResult.([]uint16)) * 2
-		result = append(result, uint8(nofBytes&0x0F))
+		result = append(result, uint8(nofBytes))
 		for i := 0; i < nofBytes/2; i++ {
 			result = append(result, byte(requestResult.([]uint16)[i]>>8))
 			result = append(result, byte(requestResult.([]uint16)[i]&0xFF))
