@@ -4,6 +4,54 @@ import (
 	"testing"
 )
 
+func TestNewRtuServerRequiresModbusAddressUnlessPromiscuous(t *testing.T) {
+	handler := &fakeRequestHandler{}
+
+	if _, err := NewRtuServer(&RtuServerConfig{TTYPath: "/dev/ttyUSB0"}, handler); err == nil {
+		t.Errorf("Expecting error when ModbusAddress is unset and PromiscuousMode is false!")
+	}
+
+	if _, err := NewRtuServer(&RtuServerConfig{TTYPath: "/dev/ttyUSB0", PromiscuousMode: true}, handler); err != nil {
+		t.Errorf("Expecting no error when PromiscuousMode is true, got: %v", err)
+	}
+}
+
+func TestMessageIsForMe(t *testing.T) {
+	ms := &RtuServer{conf: &RtuServerConfig{ModbusAddress: 0x11}}
+
+	if !ms.messageIsForMe([]byte{0x11, 0x01}) {
+		t.Errorf("Expecting message addressed to ModbusAddress to be for me!")
+	}
+	if ms.messageIsForMe([]byte{0x12, 0x01}) {
+		t.Errorf("Expecting message addressed to a different unit id to not be for me!")
+	}
+	if ms.messageIsForMe(nil) {
+		t.Errorf("Expecting nil message to not be for me!")
+	}
+
+	ms.conf.PromiscuousMode = true
+
+	if !ms.messageIsForMe([]byte{0x12, 0x01}) {
+		t.Errorf("Expecting any unit id to be for me in PromiscuousMode!")
+	}
+	if !ms.messageIsForMe([]byte{0x00, 0x01}) {
+		t.Errorf("Expecting broadcast unit id to be for me in PromiscuousMode!")
+	}
+}
+
+type fakeRequestHandler struct{}
+
+func (fakeRequestHandler) HandleCoils(req *CoilsRequest) ([]bool, error) { return nil, nil }
+func (fakeRequestHandler) HandleDiscreteInputs(req *DiscreteInputsRequest) ([]bool, error) {
+	return nil, nil
+}
+func (fakeRequestHandler) HandleHoldingRegisters(req *HoldingRegistersRequest) ([]uint16, error) {
+	return nil, nil
+}
+func (fakeRequestHandler) HandleInputRegisters(req *InputRegistersRequest) ([]uint16, error) {
+	return nil, nil
+}
+
 func TestCRCReturnNilIfMessageIsValid(t *testing.T) {
 	message := []byte{0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
 

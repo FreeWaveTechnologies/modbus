@@ -21,7 +21,14 @@ type RtuServer struct {
 type RtuServerConfig struct {
 	// What is my modbus address?
 	// I only listen to messages addressed to me...
+	// Ignored (may be left at 0) when PromiscuousMode is set.
 	ModbusAddress uint8
+	// PromiscuousMode makes the server respond to a request addressed to any
+	// unit id instead of only ModbusAddress, passing the request's UnitId
+	// through to the handler unchanged (mirroring how the TCP server already
+	// behaves). Broadcast requests (unit id 0) are still processed but never
+	// answered, per the Modbus spec.
+	PromiscuousMode bool
 	// Defines where to listen
 	TTYPath string
 	// Set Baudrate (default 19200)
@@ -48,7 +55,7 @@ func NewRtuServer(config *RtuServerConfig, reqHandler RequestHandler) (
 		err = fmt.Errorf("TTYPath must not be an empty string!")
 		return
 	}
-	if config.ModbusAddress == 0 {
+	if config.ModbusAddress == 0 && !config.PromiscuousMode {
 		err = fmt.Errorf("My modbus address must be specified!")
 		return
 	}
@@ -141,6 +148,9 @@ func (ms *RtuServer) messageIsForMe(message []byte) (yes bool) {
 	if message == nil {
 		return false
 	}
+	if ms.conf.PromiscuousMode {
+		return true
+	}
 	return message[0] == ms.conf.ModbusAddress
 }
 
@@ -210,9 +220,16 @@ func (ms *RtuServer) listenAndServe() {
 			continue
 		}
 
+		// A broadcast (unit id 0) is only reachable in PromiscuousMode -
+		// non-promiscuous ModbusAddress is validated nonzero in NewRtuServer.
+		// Per the Modbus spec, broadcasts are executed but never answered.
+		isBroadcast := receivedData[0] == 0
+
 		if raw, err = createRequestFromBytes(receivedData); err != nil {
 			ms.logger.Warningf("Can't execute request! (%v)", err)
-			ms.sendErrorMessage(receivedData, exIllegalFunction)
+			if !isBroadcast {
+				ms.sendErrorMessage(receivedData, exIllegalFunction)
+			}
 			receivedData = nil
 			continue
 		}
@@ -233,14 +250,24 @@ func (ms *RtuServer) listenAndServe() {
 		default:
 			err = fmt.Errorf("Function code not implemented!")
 			ms.logger.Warningf("Can't execute request! (%v)", err)
-			ms.sendErrorMessage(receivedData, exIllegalFunction)
+			if !isBroadcast {
+				ms.sendErrorMessage(receivedData, exIllegalFunction)
+			}
 			receivedData = nil
 			continue
 		}
 
 		if err != nil {
 			ms.logger.Warningf("Request execution failed! (%v)", err)
-			ms.sendErrorMessage(receivedData, exIllegalDataAddress)
+			if !isBroadcast {
+				ms.sendErrorMessage(receivedData, exIllegalDataAddress)
+			}
+			receivedData = nil
+			continue
+		}
+
+		if isBroadcast {
+			ms.logger.Infof("Broadcast request executed; suppressing reply per Modbus spec")
 			receivedData = nil
 			continue
 		}
