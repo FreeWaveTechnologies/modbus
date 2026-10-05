@@ -201,7 +201,7 @@ func (ms *RtuServer) listenAndServe() {
 			continue
 		}
 
-		ms.logger.Infof("Received bytes: %v\n", receivedData)
+		//ms.logger.Infof("Received bytes: %v\n", receivedData)
 
 		var raw any
 		var err error
@@ -272,7 +272,7 @@ func (ms *RtuServer) listenAndServe() {
 			continue
 		}
 
-		ms.logger.Infof("Response = %v", response)
+		//ms.logger.Infof("Response = %v", response)
 		if bytesToSend, err = createBytesFromRequest(receivedData, response); err != nil {
 			ms.logger.Warningf("Compose answer failed! (%v)", err)
 			ms.sendErrorMessage(receivedData, exIllegalFunction)
@@ -280,7 +280,7 @@ func (ms *RtuServer) listenAndServe() {
 			continue
 		}
 
-		ms.logger.Infof("Written %v bytes: 0x[% X]", len(bytesToSend), bytesToSend)
+		//ms.logger.Infof("Written %v bytes: 0x[% X]", len(bytesToSend), bytesToSend)
 		if _, err = ms.port.Write(bytesToSend); err != nil {
 			ms.logger.Errorf("Send answer failed! (%v)", err)
 		}
