@@ -17,10 +17,6 @@ type Endianness uint
 type WordOrder uint
 
 const (
-	PARITY_NONE uint = 0
-	PARITY_EVEN uint = 1
-	PARITY_ODD  uint = 2
-
 	HOLDING_REGISTER RegType = 0
 	INPUT_REGISTER   RegType = 1
 
@@ -43,7 +39,7 @@ type ClientConfig struct {
 	// DataBits sets the number of bits per serial character (rtu only)
 	DataBits uint
 	// Parity sets the serial link parity mode (rtu only)
-	Parity uint
+	Parity SerialParity
 	// StopBits sets the number of serial stop bits (rtu only)
 	StopBits uint
 	// Timeout sets the request timeout value
@@ -112,7 +108,7 @@ func NewClient(conf *ClientConfig) (mc *Client, err error) {
 		}
 
 		if mc.conf.StopBits == 0 {
-			if mc.conf.Parity == PARITY_NONE {
+			if mc.conf.Parity == ParityNone {
 				mc.conf.StopBits = 2
 			} else {
 				mc.conf.StopBits = 1
@@ -337,8 +333,6 @@ func (mc *Client) Close() (err error) {
 
 	return
 }
-
-
 
 // Sets the unit id of subsequent requests.
 func (mc *Client) SetUnitId(id uint8) (err error) {

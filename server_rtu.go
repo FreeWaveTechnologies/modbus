@@ -37,8 +37,8 @@ type RtuServerConfig struct {
 	DataBits uint
 	// How many stop bits? (default 1)
 	StopBits uint
-	// Is parity bit used? [Y/N] (default 'N')
-	Parity string
+	// Explicit parity (default "N" for none, "E" for even, "O" for odd)
+	Parity SerialParity
 	// Logger provides a custom sink for log messages.
 	// If nil, messages will be written to stdout.
 	Logger *log.Logger
@@ -68,9 +68,9 @@ func NewRtuServer(config *RtuServerConfig, reqHandler RequestHandler) (
 	if config.StopBits == 0 {
 		config.StopBits = 1
 	}
-	if config.Parity != "N" && config.Parity != "Y" {
-		config.Parity = "N"
-	}
+	// if config.Parity != "N" && config.Parity != "Y" {
+	// 	config.Parity = "N"
+	// }
 
 	ms = &RtuServer{
 		conf:    config,
@@ -107,7 +107,7 @@ func (ms *RtuServer) Start() (err error) {
 		BaudRate: int(ms.conf.BaudRate),
 		DataBits: int(ms.conf.DataBits),
 		StopBits: int(ms.conf.StopBits),
-		Parity:   ms.conf.Parity,
+		Parity:   string(ms.conf.Parity),
 		Timeout:  minPauseDuration,
 	}
 

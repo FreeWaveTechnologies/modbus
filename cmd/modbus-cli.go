@@ -69,13 +69,13 @@ func main() {
 		StopBits: stopBits,
 	}
 
-	switch parity {
-	case "none":
-		config.Parity = modbus.PARITY_NONE
-	case "odd":
-		config.Parity = modbus.PARITY_ODD
-	case "even":
-		config.Parity = modbus.PARITY_EVEN
+	switch strings.ToLower(parity) {
+	case "n", "none":
+		config.Parity = modbus.ParityNone
+	case "o", "odd":
+		config.Parity = modbus.ParityOdd
+	case "e", "even":
+		config.Parity = modbus.ParityEven
 	default:
 		fmt.Printf("unknown parity setting '%s' (should be one of none, odd or even)\n",
 			parity)
