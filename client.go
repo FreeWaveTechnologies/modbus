@@ -42,6 +42,14 @@ type ClientConfig struct {
 	Parity SerialParity
 	// StopBits sets the number of serial stop bits (rtu only)
 	StopBits uint
+	// FlowControl enables RTS/CTS hardware flow control (rtu only)
+	FlowControl bool
+	// DelayBeforeSend sets how long to wait before transmitting each
+	// request (rtu only)
+	DelayBeforeSend time.Duration
+	// BreakBeforeSend sets the length of a break condition sent before
+	// each request; zero disables it (rtu only)
+	BreakBeforeSend time.Duration
 	// Timeout sets the request timeout value
 	Timeout time.Duration
 	// TLSClientCert sets the client-side TLS key pair (tcp+tls only)
@@ -210,11 +218,14 @@ func (mc *Client) Open() (err error) {
 	case modbusRTU:
 		// create a serial port wrapper object
 		spw = newSerialPortWrapper(&serialPortConfig{
-			Device:   mc.conf.URL,
-			Speed:    mc.conf.Speed,
-			DataBits: mc.conf.DataBits,
-			Parity:   mc.conf.Parity,
-			StopBits: mc.conf.StopBits,
+			Device:          mc.conf.URL,
+			Speed:           mc.conf.Speed,
+			DataBits:        mc.conf.DataBits,
+			Parity:          mc.conf.Parity,
+			StopBits:        mc.conf.StopBits,
+			FlowControl:     mc.conf.FlowControl,
+			DelayBeforeSend: mc.conf.DelayBeforeSend,
+			BreakBeforeSend: mc.conf.BreakBeforeSend,
 		})
 
 		// open the serial device

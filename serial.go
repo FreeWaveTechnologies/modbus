@@ -3,7 +3,7 @@ package modbus
 import (
 	"time"
 
-	"github.com/goburrow/serial"
+	"github.com/FreeWaveTechnologies/modbus/serialport"
 )
 
 type SerialParity string
@@ -14,12 +14,12 @@ const (
 	ParityOdd  SerialParity = "O"
 )
 
-// serialPortWrapper wraps a serial.Port (i.e. physical port) to
+// serialPortWrapper wraps a serialport.Port (i.e. physical port) to
 // 1) satisfy the rtuLink interface and
 // 2) add Read() deadline/timeout support.
 type serialPortWrapper struct {
 	conf     *serialPortConfig
-	port     serial.Port
+	port     *serialport.Port
 	deadline time.Time
 }
 
@@ -29,6 +29,12 @@ type serialPortConfig struct {
 	DataBits uint
 	Parity   SerialParity
 	StopBits uint
+	// FlowControl enables RTS/CTS hardware flow control
+	FlowControl bool
+	// DelayBeforeSend is waited out before each frame is transmitted
+	DelayBeforeSend time.Duration
+	// BreakBeforeSend is the length of a break sent before each frame
+	BreakBeforeSend time.Duration
 }
 
 func newSerialPortWrapper(conf *serialPortConfig) (spw *serialPortWrapper) {
@@ -40,13 +46,16 @@ func newSerialPortWrapper(conf *serialPortConfig) (spw *serialPortWrapper) {
 }
 
 func (spw *serialPortWrapper) Open() (err error) {
-	spw.port, err = serial.Open(&serial.Config{
-		Address:  spw.conf.Device,
-		BaudRate: int(spw.conf.Speed),
-		DataBits: int(spw.conf.DataBits),
-		Parity:   string(spw.conf.Parity),
-		StopBits: int(spw.conf.StopBits),
-		Timeout:  10 * time.Millisecond,
+	spw.port, err = serialport.Open(&serialport.Config{
+		Device:          spw.conf.Device,
+		BaudRate:        int(spw.conf.Speed),
+		DataBits:        int(spw.conf.DataBits),
+		Parity:          serialport.Parity(spw.conf.Parity),
+		StopBits:        int(spw.conf.StopBits),
+		ReadTimeout:     10 * time.Millisecond,
+		FlowControl:     spw.conf.FlowControl,
+		DelayBeforeSend: spw.conf.DelayBeforeSend,
+		BreakBeforeSend: spw.conf.BreakBeforeSend,
 	})
 
 	return
@@ -67,7 +76,7 @@ func (spw *serialPortWrapper) Close() (err error) {
 //   - the serial port's receive buffer has one or more bytes and port.Read()
 //     returns immediately (partial or full read),
 //   - the serial port's receive buffer is empty: port.Read() blocks for
-//     up to 10ms and returns serial.ErrTimeout. The serial timeout error is
+//     up to 10ms and returns serialport.ErrTimeout. The serial timeout error is
 //     masked and Read() returns with no data.
 //
 // As the higher-level methods use io.ReadFull(), Read() will be called
@@ -81,15 +90,16 @@ func (spw *serialPortWrapper) Read(rxbuf []byte) (cnt int, err error) {
 	}
 
 	cnt, err = spw.port.Read(rxbuf)
-	// mask serial.ErrTimeout errors from the serial port
-	if err != nil && err == serial.ErrTimeout {
+	// mask serialport.ErrTimeout errors from the serial port
+	if err != nil && err == serialport.ErrTimeout {
 		err = nil
 	}
 
 	return
 }
 
-// Sends the bytes over the wire.
+// Sends the bytes over the wire, preceded by the configured delay and/or
+// break (see serialport.Port.Write).
 func (spw *serialPortWrapper) Write(txbuf []byte) (cnt int, err error) {
 	cnt, err = spw.port.Write(txbuf)
 

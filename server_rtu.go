@@ -6,14 +6,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goburrow/serial"
+	"github.com/FreeWaveTechnologies/modbus/serialport"
 )
 
 type RtuServer struct {
 	conf    *RtuServerConfig
 	handler RequestHandler
 	lock    sync.Mutex
-	port    serial.Port
+	port    *serialport.Port
 	started bool
 	logger  *logger
 }
@@ -39,6 +39,13 @@ type RtuServerConfig struct {
 	StopBits uint
 	// Explicit parity (default "N" for none, "E" for even, "O" for odd)
 	Parity SerialParity
+	// FlowControl enables RTS/CTS hardware flow control
+	FlowControl bool
+	// DelayBeforeSend sets how long to wait before transmitting each reply
+	DelayBeforeSend time.Duration
+	// BreakBeforeSend sets the length of a break condition sent before
+	// each reply; zero disables it
+	BreakBeforeSend time.Duration
 	// Logger provides a custom sink for log messages.
 	// If nil, messages will be written to stdout.
 	Logger *log.Logger
@@ -102,17 +109,20 @@ func (ms *RtuServer) Start() (err error) {
 	}
 	ms.logger.Infof("Min pause time at %v baud with %v bits per symbol: %v", ms.conf.BaudRate, bitsPerSymbol, minPauseDuration)
 
-	serialCfg := serial.Config{
-		Address:  ms.conf.TTYPath,
-		BaudRate: int(ms.conf.BaudRate),
-		DataBits: int(ms.conf.DataBits),
-		StopBits: int(ms.conf.StopBits),
-		Parity:   string(ms.conf.Parity),
-		Timeout:  minPauseDuration,
+	serialCfg := serialport.Config{
+		Device:          ms.conf.TTYPath,
+		BaudRate:        int(ms.conf.BaudRate),
+		DataBits:        int(ms.conf.DataBits),
+		StopBits:        int(ms.conf.StopBits),
+		Parity:          serialport.Parity(ms.conf.Parity),
+		ReadTimeout:     minPauseDuration,
+		FlowControl:     ms.conf.FlowControl,
+		DelayBeforeSend: ms.conf.DelayBeforeSend,
+		BreakBeforeSend: ms.conf.BreakBeforeSend,
 	}
 
 	ms.logger.Infof("Connecting %v", serialCfg)
-	ms.port, err = serial.Open(&serialCfg)
+	ms.port, err = serialport.Open(&serialCfg)
 	if err != nil {
 		ms.logger.Errorf("Connecting failed: %v", err)
 		return
@@ -189,10 +199,18 @@ func (ms *RtuServer) listenAndServe() {
 		// Read one byte and append to buffer if we have received one.
 		// Listen for the next byte immediately.
 		buf := make([]byte, 1)
-		n, _ := ms.port.Read(buf)
+		n, readErr := ms.port.Read(buf)
 		if n > 0 {
 			receivedData = append(receivedData, buf...)
 			continue
+		}
+
+		// A timeout is the inter-frame pause; anything else means the port
+		// is gone (closed by Stop(), or the device was lost) and every
+		// further read would fail immediately.
+		if readErr != nil && readErr != serialport.ErrTimeout {
+			ms.logger.Infof("Stop listening: %v", readErr)
+			return
 		}
 
 		// Continue receiving when we have nothing received yet...
