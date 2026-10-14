@@ -28,6 +28,9 @@ func main() {
 	var dataBits uint
 	var parity string
 	var stopBits uint
+	var flowControl bool
+	var delayBeforeSend time.Duration
+	var breakBeforeSend time.Duration
 	var endianness string
 	var wordOrder string
 	var timeout string
@@ -41,6 +44,9 @@ func main() {
 	flag.UintVar(&dataBits, "data-bits", 8, "number of bits per character on the serial bus (rtu)")
 	flag.StringVar(&parity, "parity", "none", "parity bit <none|even|odd> on the serial bus (rtu)")
 	flag.UintVar(&stopBits, "stop-bits", 2, "number of stop bits <0|1|2>) on the serial bus (rtu)")
+	flag.BoolVar(&flowControl, "flow-control", false, "enable RTS/CTS hardware flow control on the serial bus (rtu)")
+	flag.DurationVar(&delayBeforeSend, "delay-before-send", 0, "time to wait before transmitting each request, e.g. 5ms (rtu)")
+	flag.DurationVar(&breakBeforeSend, "break-before-send", 0, "length of a break condition sent before each request, e.g. 2ms; 0 disables (rtu)")
 	flag.StringVar(&timeout, "timeout", "3s", "timeout value")
 	flag.StringVar(&endianness, "endianness", "big", "register endianness <little|big>")
 	flag.StringVar(&wordOrder, "word-order", "highfirst", "word ordering for 32-bit registers <highfirst|hf|lowfirst|lf>")
@@ -56,6 +62,11 @@ func main() {
 		os.Exit(0)
 	}
 
+	if delayBeforeSend < 0 || breakBeforeSend < 0 {
+		fmt.Printf("--delay-before-send and --break-before-send must not be negative\n")
+		os.Exit(1)
+	}
+
 	if target == "" {
 		fmt.Printf("no target specified, please use --target\n")
 		os.Exit(1)
@@ -67,6 +78,10 @@ func main() {
 		Speed:    speed,
 		DataBits: dataBits,
 		StopBits: stopBits,
+
+		FlowControl:     flowControl,
+		DelayBeforeSend: delayBeforeSend,
+		BreakBeforeSend: breakBeforeSend,
 	}
 
 	switch strings.ToLower(parity) {
@@ -1288,6 +1303,11 @@ Examples:
     integers, write 0x605 as a 16-bit unsigned integer at address 2,
     change for unit id 3, read input registers 0-1 as 16-bit signed integers,
     pause for 1s.
+
+  $ modbus-cli --target rtu:///dev/ttyUSB0 --speed 9600 --flow-control \
+    --delay-before-send 5ms --break-before-send 2ms ping:10:500ms
+  Open serial port /dev/ttyUSB0 at 9600 bps with RTS/CTS flow control, then send 10 pings
+  500ms apart, waiting 5ms and asserting a 2ms break on the line before each request.
 
   $ modbus-cli --target tcp://somehost:502 scan:hr scan:ir scan:di scan:coils
   Connect to somehost port 502 and perform a scan of all modbus types (namely
