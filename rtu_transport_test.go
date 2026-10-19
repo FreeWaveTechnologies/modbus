@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestAssembleRTUFrame(t *testing.T) {
+func Test_AssembleRTUFrame(t *testing.T) {
 	var rt *rtuTransport
 	var frame []byte
 
@@ -55,7 +55,7 @@ func TestAssembleRTUFrame(t *testing.T) {
 	}
 }
 
-func TestRTUTransportReadRTUFrame(t *testing.T) {
+func Test_RTUTransportReadRTUFrame(t *testing.T) {
 	var rt *rtuTransport
 	var p1, p2 net.Conn
 	var txchan chan []byte
@@ -166,7 +166,7 @@ func feedTestPipe(t *testing.T, in chan []byte, out io.WriteCloser) {
 	}
 }
 
-func TestModbusRTUSerialCharTime(t *testing.T) {
+func Test_ModbusRTUSerialCharTime(t *testing.T) {
 	var d time.Duration
 
 	d = serialCharTime(38400)

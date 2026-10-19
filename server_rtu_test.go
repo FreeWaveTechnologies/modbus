@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestNewRtuServerRequiresModbusAddressUnlessPromiscuous(t *testing.T) {
+func Test_NewRtuServerRequiresModbusAddressUnlessPromiscuous(t *testing.T) {
 	handler := &fakeRequestHandler{}
 
 	if _, err := NewRtuServer(&RtuServerConfig{TTYPath: "/dev/ttyUSB0"}, handler); err == nil {
@@ -16,7 +16,7 @@ func TestNewRtuServerRequiresModbusAddressUnlessPromiscuous(t *testing.T) {
 	}
 }
 
-func TestMessageIsForMe(t *testing.T) {
+func Test_MessageIsForMe(t *testing.T) {
 	ms := &RtuServer{conf: &RtuServerConfig{ModbusAddress: 0x11}}
 
 	if !ms.messageIsForMe([]byte{0x11, 0x01}) {
@@ -52,7 +52,7 @@ func (fakeRequestHandler) HandleInputRegisters(req *InputRegistersRequest) ([]ui
 	return nil, nil
 }
 
-func TestCRCReturnNilIfMessageIsValid(t *testing.T) {
+func Test_CRCReturnNilIfMessageIsValid(t *testing.T) {
 	message := []byte{0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
 
 	var result = messageIsValid(message)
@@ -61,7 +61,7 @@ func TestCRCReturnNilIfMessageIsValid(t *testing.T) {
 	}
 }
 
-func TestCRCReturnErrorIfMessageIsInvalid(t *testing.T) {
+func Test_CRCReturnErrorIfMessageIsInvalid(t *testing.T) {
 	message := []byte{0x21, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
 
 	var result = messageIsValid(message)
@@ -70,7 +70,7 @@ func TestCRCReturnErrorIfMessageIsInvalid(t *testing.T) {
 	}
 }
 
-func TestReadMultipleCoilRegister(t *testing.T) {
+func Test_ReadMultipleCoilRegister(t *testing.T) {
 	message := []byte{0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
 
 	raw, err := createRequestFromBytes(message)
@@ -112,7 +112,7 @@ func TestReadMultipleCoilRegister(t *testing.T) {
 	}
 }
 
-func TestReadMultipleDiscreteInputRegister(t *testing.T) {
+func Test_ReadMultipleDiscreteInputRegister(t *testing.T) {
 	message := []byte{0x11, 0x02, 0x00, 0xC4, 0x00, 0x16, 0xBA, 0xA9}
 
 	raw, err := createRequestFromBytes(message)
@@ -146,7 +146,7 @@ func TestReadMultipleDiscreteInputRegister(t *testing.T) {
 	}
 }
 
-func TestReadMultipleHoldingRegister(t *testing.T) {
+func Test_ReadMultipleHoldingRegister(t *testing.T) {
 	message := []byte{0x11, 0x03, 0x00, 0x6B, 0x00, 0x03, 0x76, 0x87}
 
 	raw, err := createRequestFromBytes(message)
@@ -188,7 +188,7 @@ func TestReadMultipleHoldingRegister(t *testing.T) {
 	}
 }
 
-func TestReadMultipleInputRegister(t *testing.T) {
+func Test_ReadMultipleInputRegister(t *testing.T) {
 	message := []byte{0x11, 0x04, 0x00, 0x08, 0x00, 0x01, 0xB2, 0x98}
 
 	raw, err := createRequestFromBytes(message)
@@ -222,7 +222,7 @@ func TestReadMultipleInputRegister(t *testing.T) {
 	}
 }
 
-func TestWriteSingleCoilRegister(t *testing.T) {
+func Test_WriteSingleCoilRegister(t *testing.T) {
 	message := []byte{0x11, 0x05, 0x00, 0xAC, 0xFF, 0x00, 0x4E, 0x8B}
 
 	raw, err := createRequestFromBytes(message)
@@ -266,7 +266,7 @@ func TestWriteSingleCoilRegister(t *testing.T) {
 	}
 }
 
-func TestWriteSingleHoldingRegister(t *testing.T) {
+func Test_WriteSingleHoldingRegister(t *testing.T) {
 	message := []byte{0x11, 0x06, 0x00, 0x01, 0x00, 0x03, 0x9A, 0x9B}
 
 	raw, err := createRequestFromBytes(message)
@@ -310,7 +310,7 @@ func TestWriteSingleHoldingRegister(t *testing.T) {
 	}
 }
 
-func TestWriteMultipleCoilRegister(t *testing.T) {
+func Test_WriteMultipleCoilRegister(t *testing.T) {
 	message := []byte{0x11, 0x0F, 0x00, 0x13, 0x00, 0x0A, 0x02, 0xCD, 0x01, 0xBF, 0x0D}
 
 	raw, err := createRequestFromBytes(message)
@@ -356,7 +356,7 @@ func TestWriteMultipleCoilRegister(t *testing.T) {
 	}
 }
 
-func TestWriteMultipleHoldingRegister(t *testing.T) {
+func Test_WriteMultipleHoldingRegister(t *testing.T) {
 	message := []byte{0x11, 0x10, 0x00, 0x01, 0x00, 0x02, 0x04, 0x00, 0x0A, 0x01, 0x02, 0xC6, 0xF0}
 
 	raw, err := createRequestFromBytes(message)
@@ -400,7 +400,7 @@ func TestWriteMultipleHoldingRegister(t *testing.T) {
 	}
 }
 
-func TestReadMultipleCoilRegisterByteAnswer(t *testing.T) {
+func Test_ReadMultipleCoilRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x01, 0x00, 0x13, 0x00, 0x25, 0x0E, 0x84}
 	expected := []byte{0x11, 0x01, 0x05, 0xCD, 0x6B, 0xB2, 0x0E, 0x1B, 0x45, 0xE6}
 
@@ -425,7 +425,7 @@ func TestReadMultipleCoilRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestReadMultipleDiscreteInputRegisterByteAnswer(t *testing.T) {
+func Test_ReadMultipleDiscreteInputRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x02, 0x00, 0xC4, 0x00, 0x16, 0xBA, 0xA9}
 	expected := []byte{0x11, 0x02, 0x03, 0xAC, 0xDB, 0x35, 0x20, 0x18}
 
@@ -448,7 +448,7 @@ func TestReadMultipleDiscreteInputRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestReadMultipleHoldingRegisterByteAnswer(t *testing.T) {
+func Test_ReadMultipleHoldingRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x03, 0x00, 0x6B, 0x00, 0x03, 0x76, 0x87}
 	expected := []byte{0x11, 0x03, 0x06, 0xAE, 0x41, 0x56, 0x52, 0x43, 0x40, 0x49, 0xAD}
 
@@ -467,7 +467,7 @@ func TestReadMultipleHoldingRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestReadMultipleInputRegisterByteAnswer(t *testing.T) {
+func Test_ReadMultipleInputRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x04, 0x00, 0x08, 0x00, 0x01, 0xB2, 0x98}
 	expected := []byte{0x11, 0x04, 0x02, 0x00, 0x0A, 0xF8, 0xF4}
 
@@ -486,7 +486,7 @@ func TestReadMultipleInputRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestWriteSingleCoilRegisterByteAnswer(t *testing.T) {
+func Test_WriteSingleCoilRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x05, 0x00, 0xAC, 0xFF, 0x00, 0x4E, 0x8B}
 	expected := []byte{0x11, 0x05, 0x00, 0xAC, 0xFF, 0x00, 0x4E, 0x8B}
 
@@ -505,7 +505,7 @@ func TestWriteSingleCoilRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestWriteSingleHoldingRegisterByteAnswer(t *testing.T) {
+func Test_WriteSingleHoldingRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x06, 0x00, 0x01, 0x00, 0x03, 0x9A, 0x9B}
 	expected := []byte{0x11, 0x06, 0x00, 0x01, 0x00, 0x03, 0x9A, 0x9B}
 
@@ -524,7 +524,7 @@ func TestWriteSingleHoldingRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestWriteMultipleCoilRegisterByteAnswer(t *testing.T) {
+func Test_WriteMultipleCoilRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x0F, 0x00, 0x13, 0x00, 0x0A, 0x02, 0xCD, 0x01, 0xBF, 0x0D}
 	expected := []byte{0x11, 0x0F, 0x00, 0x13, 0x00, 0x0A, 0x26, 0x99}
 
@@ -543,7 +543,7 @@ func TestWriteMultipleCoilRegisterByteAnswer(t *testing.T) {
 	}
 }
 
-func TestWriteMultipleHoldingRegisterByteAnswer(t *testing.T) {
+func Test_WriteMultipleHoldingRegisterByteAnswer(t *testing.T) {
 	message := []byte{0x11, 0x10, 0x00, 0x01, 0x00, 0x02, 0x04, 0x00, 0x0A, 0x01, 0x02, 0xC6, 0xF0}
 	expected := []byte{0x11, 0x10, 0x00, 0x01, 0x00, 0x02, 0x12, 0x98}
 

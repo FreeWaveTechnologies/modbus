@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestUDPSockWrapper(t *testing.T) {
+func Test_UDPSockWrapper(t *testing.T) {
 	var err error
 	var usw *udpSockWrapper
 	var sock1 *net.UDPConn

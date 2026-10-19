@@ -48,7 +48,7 @@ func setPtyHardwareFlowControl(t *testing.T, master int, enable bool) {
 	}
 }
 
-func TestClientOpenAppliesFlowControl(t *testing.T) {
+func Test_ClientOpenAppliesFlowControl(t *testing.T) {
 	for _, enable := range []bool{true, false} {
 		t.Run(fmt.Sprintf("FlowControl=%v", enable), func(t *testing.T) {
 			master, slave := openRtuTestPty(t)
@@ -80,7 +80,7 @@ func TestClientOpenAppliesFlowControl(t *testing.T) {
 	}
 }
 
-func TestRtuServerStartAppliesFlowControl(t *testing.T) {
+func Test_RtuServerStartAppliesFlowControl(t *testing.T) {
 	for _, enable := range []bool{true, false} {
 		t.Run(fmt.Sprintf("FlowControl=%v", enable), func(t *testing.T) {
 			master, slave := openRtuTestPty(t)

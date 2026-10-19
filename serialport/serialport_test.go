@@ -7,7 +7,7 @@ import (
 	"go.bug.st/serial"
 )
 
-func TestToMode(t *testing.T) {
+func Test_ToMode(t *testing.T) {
 	mode, err := toMode(&Config{BaudRate: 9600, DataBits: 7, Parity: ParityEven, StopBits: 2})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -28,7 +28,7 @@ func TestToMode(t *testing.T) {
 	}
 }
 
-func TestToModeDefaultsUnsetParityAndStopBits(t *testing.T) {
+func Test_ToModeDefaultsUnsetParityAndStopBits(t *testing.T) {
 	mode, err := toMode(&Config{BaudRate: 9600, DataBits: 8})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -39,7 +39,7 @@ func TestToModeDefaultsUnsetParityAndStopBits(t *testing.T) {
 	}
 }
 
-func TestToModeRejectsInvalidSettings(t *testing.T) {
+func Test_ToModeRejectsInvalidSettings(t *testing.T) {
 	_, err := toMode(&Config{BaudRate: 9600, DataBits: 8, Parity: "M"})
 	if err == nil {
 		t.Errorf("expected an error for an unsupported parity")
@@ -51,7 +51,7 @@ func TestToModeRejectsInvalidSettings(t *testing.T) {
 	}
 }
 
-func TestOpenFailsOnMissingDevice(t *testing.T) {
+func Test_OpenFailsOnMissingDevice(t *testing.T) {
 	_, err := Open(&Config{Device: "/dev/does-not-exist", BaudRate: 9600, DataBits: 8})
 	if err == nil {
 		t.Errorf("expected an error opening a missing device")
@@ -94,7 +94,7 @@ func (w *writePort) Write(p []byte) (int, error) {
 	return n, err
 }
 
-func TestRetryInterruptedRetriesEINTR(t *testing.T) {
+func Test_RetryInterruptedRetriesEINTR(t *testing.T) {
 	errs := []error{syscall.EINTR, syscall.EINTR, nil}
 	calls := 0
 
@@ -110,7 +110,7 @@ func TestRetryInterruptedRetriesEINTR(t *testing.T) {
 	}
 }
 
-func TestRetryInterruptedReturnsOtherErrors(t *testing.T) {
+func Test_RetryInterruptedReturnsOtherErrors(t *testing.T) {
 	calls := 0
 
 	err := retryInterrupted(func() error {
@@ -125,7 +125,7 @@ func TestRetryInterruptedReturnsOtherErrors(t *testing.T) {
 	}
 }
 
-func TestWriteAllCarriesOnAfterInterruptions(t *testing.T) {
+func Test_WriteAllCarriesOnAfterInterruptions(t *testing.T) {
 	// interrupted before writing anything, then part way through
 	port := &writePort{script: []scriptedCall{{0, syscall.EINTR}, {2, nil}}}
 
@@ -141,7 +141,7 @@ func TestWriteAllCarriesOnAfterInterruptions(t *testing.T) {
 	}
 }
 
-func TestWriteAllReturnsOtherErrors(t *testing.T) {
+func Test_WriteAllReturnsOtherErrors(t *testing.T) {
 	port := &writePort{script: []scriptedCall{{2, nil}, {0, syscall.EIO}}}
 
 	cnt, err := writeAll(port, []byte{0x01, 0x02, 0x03, 0x04, 0x05})

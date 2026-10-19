@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestUint16ToBytes(t *testing.T) {
+func Test_Uint16ToBytes(t *testing.T) {
 	var out []byte
 
 	out = uint16ToBytes(BIG_ENDIAN, 0x4321)
@@ -25,7 +25,7 @@ func TestUint16ToBytes(t *testing.T) {
 
 }
 
-func TestUint16sToBytes(t *testing.T) {
+func Test_Uint16sToBytes(t *testing.T) {
 	var out []byte
 
 	out = uint16sToBytes(BIG_ENDIAN, []uint16{0x4321, 0x8765, 0xcba9})
@@ -57,7 +57,7 @@ func TestUint16sToBytes(t *testing.T) {
 	}
 }
 
-func TestBytesToUint16(t *testing.T) {
+func Test_BytesToUint16(t *testing.T) {
 	var result uint16
 
 	result = bytesToUint16(BIG_ENDIAN, []byte{0x43, 0x21})
@@ -71,7 +71,7 @@ func TestBytesToUint16(t *testing.T) {
 	}
 }
 
-func TestBytesToUint16s(t *testing.T) {
+func Test_BytesToUint16s(t *testing.T) {
 	var results []uint16
 
 	results = bytesToUint16s(BIG_ENDIAN, []byte{0x11, 0x22, 0x33, 0x44})
@@ -97,7 +97,7 @@ func TestBytesToUint16s(t *testing.T) {
 	}
 }
 
-func TestUint32ToBytes(t *testing.T) {
+func Test_Uint32ToBytes(t *testing.T) {
 	var out []byte
 
 	out = uint32ToBytes(BIG_ENDIAN, HIGH_WORD_FIRST, 0x87654321)
@@ -138,7 +138,7 @@ func TestUint32ToBytes(t *testing.T) {
 	}
 }
 
-func TestBytesToUint32s(t *testing.T) {
+func Test_BytesToUint32s(t *testing.T) {
 	var results []uint32
 
 	results = bytesToUint32s(BIG_ENDIAN, HIGH_WORD_FIRST, []byte{
@@ -198,7 +198,7 @@ func TestBytesToUint32s(t *testing.T) {
 	}
 }
 
-func TestFloat32ToBytes(t *testing.T) {
+func Test_Float32ToBytes(t *testing.T) {
 	var out []byte
 
 	out = float32ToBytes(BIG_ENDIAN, HIGH_WORD_FIRST, 1.234)
@@ -238,7 +238,7 @@ func TestFloat32ToBytes(t *testing.T) {
 	}
 }
 
-func TestBytesToFloat32s(t *testing.T) {
+func Test_BytesToFloat32s(t *testing.T) {
 	var results []float32
 
 	results = bytesToFloat32s(BIG_ENDIAN, HIGH_WORD_FIRST, []byte{
@@ -298,7 +298,7 @@ func TestBytesToFloat32s(t *testing.T) {
 	}
 }
 
-func TestUint64ToBytes(t *testing.T) {
+func Test_Uint64ToBytes(t *testing.T) {
 	var out []byte
 
 	out = uint64ToBytes(BIG_ENDIAN, HIGH_WORD_FIRST, 0x0fedcba987654321)
@@ -351,7 +351,7 @@ func TestUint64ToBytes(t *testing.T) {
 	}
 }
 
-func TestBytesToUint64s(t *testing.T) {
+func Test_BytesToUint64s(t *testing.T) {
 	var results []uint64
 
 	results = bytesToUint64s(BIG_ENDIAN, HIGH_WORD_FIRST, []byte{
@@ -413,7 +413,7 @@ func TestBytesToUint64s(t *testing.T) {
 	}
 }
 
-func TestFloat64ToBytes(t *testing.T) {
+func Test_Float64ToBytes(t *testing.T) {
 	var out []byte
 
 	out = float64ToBytes(BIG_ENDIAN, HIGH_WORD_FIRST, 1.2345678)
@@ -458,7 +458,7 @@ func TestFloat64ToBytes(t *testing.T) {
 	}
 }
 
-func TestBytesToFloat64s(t *testing.T) {
+func Test_BytesToFloat64s(t *testing.T) {
 	var results []float64
 
 	results = bytesToFloat64s(BIG_ENDIAN, HIGH_WORD_FIRST, []byte{
@@ -518,7 +518,7 @@ func TestBytesToFloat64s(t *testing.T) {
 	}
 }
 
-func TestDecodeBools(t *testing.T) {
+func Test_DecodeBools(t *testing.T) {
 	var results []bool
 
 	results = decodeBools(1, []byte{0x01})
@@ -551,7 +551,7 @@ func TestDecodeBools(t *testing.T) {
 	}
 }
 
-func TestEncodeBools(t *testing.T) {
+func Test_EncodeBools(t *testing.T) {
 	var results []byte
 
 	results = encodeBools([]bool{false, true, false, true})

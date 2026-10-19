@@ -190,7 +190,7 @@ func pattern(n int) []byte {
 
 // The peer drops its RTS, so the port under test must hold back its output
 // until the peer raises RTS again.
-func TestHWFlowControlHoldsOutputWhileCTSIsLow(t *testing.T) {
+func TestIntegration_HWFlowControlHoldsOutputWhileCTSIsLow(t *testing.T) {
 	peer := openHWFlowControlPeer(t)
 	setRTS(t, peer, false)
 	p := openHWFlowControlPortUnderTest(t, peer, true)
@@ -232,7 +232,7 @@ func TestHWFlowControlHoldsOutputWhileCTSIsLow(t *testing.T) {
 
 // The control case for TestHWFlowControlHoldsOutputWhileCTSIsLow: without
 // flow control, a low CTS doesn't hold back the output.
-func TestHWFlowControlOffIgnoresCTS(t *testing.T) {
+func TestIntegration_HWFlowControlOffIgnoresCTS(t *testing.T) {
 	peer := openHWFlowControlPeer(t)
 	setRTS(t, peer, false)
 	p := openHWFlowControlPortUnderTest(t, peer, false)
@@ -255,7 +255,7 @@ func TestHWFlowControlOffIgnoresCTS(t *testing.T) {
 // its buffers fill it must drop RTS (the peer's CTS); the peer stops
 // sending as soon as it sees that, as a well-behaved device would. Reading
 // the data back must then raise RTS again, and nothing sent may be lost.
-func TestHWFlowControlDropsRTSWhenReceiveBufferFills(t *testing.T) {
+func TestIntegration_HWFlowControlDropsRTSWhenReceiveBufferFills(t *testing.T) {
 	peer := openHWFlowControlPeer(t)
 	p := openHWFlowControlPortUnderTest(t, peer, true)
 

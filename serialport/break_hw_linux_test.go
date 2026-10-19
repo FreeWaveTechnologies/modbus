@@ -93,7 +93,7 @@ func breakPayload(n int) []byte {
 
 // Each write must be preceded by exactly one break, and the break must
 // come before the data, not cut into it.
-func TestHWBreakBeforeSendPrecedesEachWrite(t *testing.T) {
+func TestIntegration_HWBreakBeforeSendPrecedesEachWrite(t *testing.T) {
 	peer := openHWBreakPeer(t)
 	p := openHWBreakPortUnderTest(t, 10*time.Millisecond)
 
@@ -121,7 +121,7 @@ func TestHWBreakBeforeSendPrecedesEachWrite(t *testing.T) {
 
 // The control case for TestHWBreakBeforeSendPrecedesEachWrite: with
 // BreakBeforeSend unset, only the data reaches the line.
-func TestHWBreakBeforeSendOffSendsNoBreak(t *testing.T) {
+func TestIntegration_HWBreakBeforeSendOffSendsNoBreak(t *testing.T) {
 	peer := openHWBreakPeer(t)
 	p := openHWBreakPortUnderTest(t, 0)
 

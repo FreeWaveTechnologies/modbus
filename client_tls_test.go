@@ -195,7 +195,7 @@ yEU+HMj419vJHZRyHwuxy9aJLDErxg==
 )
 
 // TestTCPOVerTLSClient tests the TLS layer of the modbus client.
-func TestTCPoverTLSClient(t *testing.T) {
+func Test_TCPoverTLSClient(t *testing.T) {
 	var err error
 	var client *Client
 	var serverKeyPair tls.Certificate
@@ -340,7 +340,7 @@ func TestTCPoverTLSClient(t *testing.T) {
 	}
 }
 
-func TestTLSClientOnServerTimeout(t *testing.T) {
+func Test_TLSClientOnServerTimeout(t *testing.T) {
 	var err error
 	var client *Client
 	var server *TcpServer

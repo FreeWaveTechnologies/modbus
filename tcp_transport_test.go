@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestAssembleMBAPFrame(t *testing.T) {
+func Test_AssembleMBAPFrame(t *testing.T) {
 	var tt *tcpTransport
 	var frame []byte
 
@@ -57,7 +57,7 @@ func TestAssembleMBAPFrame(t *testing.T) {
 	}
 }
 
-func TestTCPTransportReadResponse(t *testing.T) {
+func Test_TCPTransportReadResponse(t *testing.T) {
 	var tt *tcpTransport
 	var p1, p2 net.Conn
 	var txchan chan []byte
@@ -204,7 +204,7 @@ func TestTCPTransportReadResponse(t *testing.T) {
 	p2.Close()
 }
 
-func TestTCPTransportReadRequest(t *testing.T) {
+func Test_TCPTransportReadRequest(t *testing.T) {
 	var tt *tcpTransport
 	var p1, p2 net.Conn
 	var txchan chan []byte
@@ -297,7 +297,7 @@ func TestTCPTransportReadRequest(t *testing.T) {
 	}
 }
 
-func TestTCPTransportWriteResponse(t *testing.T) {
+func Test_TCPTransportWriteResponse(t *testing.T) {
 	var tt *tcpTransport
 	var p1, p2 net.Conn
 	var done chan bool

@@ -75,7 +75,7 @@ func writePty(t *testing.T, master int, data []byte) {
 	}
 }
 
-func TestOpenEnablesHardwareFlowControl(t *testing.T) {
+func Test_OpenEnablesHardwareFlowControl(t *testing.T) {
 	master, slave := openPty(t)
 
 	p, err := Open(&Config{Device: slave, BaudRate: 9600, DataBits: 8, FlowControl: true})
@@ -95,7 +95,7 @@ func TestOpenEnablesHardwareFlowControl(t *testing.T) {
 	}
 }
 
-func TestOpenLeavesHardwareFlowControlOffByDefault(t *testing.T) {
+func Test_OpenLeavesHardwareFlowControlOffByDefault(t *testing.T) {
 	master, slave := openPty(t)
 
 	// a previous user of the port may have left flow control on
@@ -125,7 +125,7 @@ func TestOpenLeavesHardwareFlowControlOffByDefault(t *testing.T) {
 	}
 }
 
-func TestWithHardwareFlowControl(t *testing.T) {
+func Test_WithHardwareFlowControl(t *testing.T) {
 	termios := &unix.Termios{Cflag: unix.CS8 | unix.CREAD}
 
 	withHardwareFlowControl(termios, true)
@@ -139,7 +139,7 @@ func TestWithHardwareFlowControl(t *testing.T) {
 	}
 }
 
-func TestReadTimeoutReturnsErrTimeout(t *testing.T) {
+func Test_ReadTimeoutReturnsErrTimeout(t *testing.T) {
 	_, slave := openPty(t)
 
 	p, err := Open(&Config{Device: slave, BaudRate: 9600, DataBits: 8, ReadTimeout: 20 * time.Millisecond})
@@ -155,7 +155,7 @@ func TestReadTimeoutReturnsErrTimeout(t *testing.T) {
 	}
 }
 
-func TestCloseUnblocksRead(t *testing.T) {
+func Test_CloseUnblocksRead(t *testing.T) {
 	_, slave := openPty(t)
 
 	p, err := Open(&Config{Device: slave, BaudRate: 9600, DataBits: 8})
@@ -183,7 +183,7 @@ func TestCloseUnblocksRead(t *testing.T) {
 	}
 }
 
-func TestReadWrite(t *testing.T) {
+func Test_ReadWrite(t *testing.T) {
 	master, slave := openPty(t)
 
 	p, err := Open(&Config{Device: slave, BaudRate: 9600, DataBits: 8, ReadTimeout: time.Second})
@@ -211,7 +211,7 @@ func TestReadWrite(t *testing.T) {
 	}
 }
 
-func TestWriteWaitsOutDelayBeforeSend(t *testing.T) {
+func Test_WriteWaitsOutDelayBeforeSend(t *testing.T) {
 	master, slave := openPty(t)
 
 	p, err := Open(&Config{
@@ -238,7 +238,7 @@ func TestWriteWaitsOutDelayBeforeSend(t *testing.T) {
 	readPty(t, master, 1)
 }
 
-func TestWriteSendsBreakBeforeSend(t *testing.T) {
+func Test_WriteSendsBreakBeforeSend(t *testing.T) {
 	master, slave := openPty(t)
 
 	p, err := Open(&Config{

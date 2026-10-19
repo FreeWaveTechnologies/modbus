@@ -102,7 +102,7 @@ IEiAeSZ1uoXSPNCU8EZsAfCagTUQ
 )
 
 // TestTLSServer tests the TLS layer of the modbus server.
-func TestTLSServer(t *testing.T) {
+func Test_TLSServer(t *testing.T) {
 	var err error
 	var server *TcpServer
 	var serverKeyPair tls.Certificate
@@ -394,7 +394,7 @@ func (th *tlsTestHandler) HandleInputRegisters(req *InputRegistersRequest) (res 
 	return
 }
 
-func TestServerExtractRole(t *testing.T) {
+func Test_ServerExtractRole(t *testing.T) {
 	var ms *TcpServer
 	var pemBlock *pem.Block
 	var x509Cert *x509.Certificate

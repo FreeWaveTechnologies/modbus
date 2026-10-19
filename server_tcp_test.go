@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestTCPServerWithConcurrentConnections(t *testing.T) {
+func Test_TCPServerWithConcurrentConnections(t *testing.T) {
 	var server *TcpServer
 	var err error
 	var coils []bool
@@ -194,7 +194,7 @@ func TestTCPServerWithConcurrentConnections(t *testing.T) {
 	}
 }
 
-func TestTCPServerCoilsAndDiscreteInputs(t *testing.T) {
+func Test_TCPServerCoilsAndDiscreteInputs(t *testing.T) {
 	var server *TcpServer
 	var err error
 	var coils []bool
@@ -360,7 +360,7 @@ func TestTCPServerCoilsAndDiscreteInputs(t *testing.T) {
 	server.Stop()
 }
 
-func TestTCPServerHoldingAndInputRegisters(t *testing.T) {
+func Test_TCPServerHoldingAndInputRegisters(t *testing.T) {
 	var server *TcpServer
 	var err error
 	var client *Client

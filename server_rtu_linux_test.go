@@ -58,7 +58,7 @@ func withCRC(frame []byte) []byte {
 	return append(frame, c.value()...)
 }
 
-func TestRtuServerServesRequestsAndStopsListeningWhenStopped(t *testing.T) {
+func Test_RtuServerServesRequestsAndStopsListeningWhenStopped(t *testing.T) {
 	master, slave := openRtuTestPty(t)
 
 	conf := &RtuServerConfig{

@@ -64,7 +64,7 @@ Cm26OWMohpLzGITY+9HPBVZkVw==
 -----END CERTIFICATE-----
 `
 
-func TestLoadCertPool(t *testing.T) {
+func Test_LoadCertPool(t *testing.T) {
 	var err error
 	var cp *x509.CertPool
 	var fd *os.File

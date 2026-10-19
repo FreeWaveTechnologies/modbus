@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestCRC(t *testing.T) {
+func Test_CRC(t *testing.T) {
 	var c crc
 	var out []byte
 
@@ -65,7 +65,7 @@ func TestCRC(t *testing.T) {
 	}
 }
 
-func TestCRCIsEqual(t *testing.T) {
+func Test_CRCIsEqual(t *testing.T) {
 	var c crc
 	var out []byte
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestClientCustomLogger(t *testing.T) {
+func Test_ClientCustomLogger(t *testing.T) {
 	var buf bytes.Buffer
 	var logger *log.Logger
 
@@ -22,7 +22,7 @@ func TestClientCustomLogger(t *testing.T) {
 	}
 }
 
-func TestClientGetURL(t *testing.T) {
+func Test_ClientGetURL(t *testing.T) {
 	client, err := NewClient(&ClientConfig{URL: "tcp://plc:502"})
 	if err != nil {
 		t.Fatalf("NewClient() failed: %v", err)
@@ -33,7 +33,7 @@ func TestClientGetURL(t *testing.T) {
 	}
 }
 
-func TestServerCustomLogger(t *testing.T) {
+func Test_ServerCustomLogger(t *testing.T) {
 	var buf bytes.Buffer
 	var logger *log.Logger
 
