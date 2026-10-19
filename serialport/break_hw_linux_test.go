@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"go.bug.st/serial"
-	"golang.org/x/sys/unix"
 )
 
 // These tests check that BreakBeforeSend puts a real break condition on
@@ -18,16 +17,23 @@ import (
 //
 // They use the same null-modem cable and ports as the hardware flow
 // control tests (only TX and RX matter here), and skip the same way. Port
-// A is the port under test, opened through Open. Port B is the peer,
-// set up to mark each break it receives.
+// A is the port under test, opened through Open. Port B is the peer.
+//
+// The peer is left in the raw mode go.bug.st/serial sets up, where a
+// received break reads as a single \0. The tests' payloads never contain a
+// \0, so one can only have come from a break.
+//
+// PARMRK would mark a break as \377 \0 \0 instead, telling it apart from a
+// data \0, but it can't be relied on here: the ftdi_sio driver only flags
+// a break when its \0 is the last byte of a USB packet, and with data
+// following the break straight away, the two often share one. The break
+// then arrives as an unmarked \0 either way.
 
-// hwBreakMarker is what the peer reads for a received break: with PARMRK
-// set, the line discipline reports a break as \377 \0 \0, which a plain
-// data byte can't produce (a real \377 arrives doubled).
-var hwBreakMarker = []byte{0xFF, 0x00, 0x00}
+// hwBreakChar is what the peer reads for a received break.
+const hwBreakChar = 0x00
 
 // openHWBreakPeer skips the test unless both hardware ports are
-// configured, and returns port B set up to mark received breaks.
+// configured, and returns port B.
 func openHWBreakPeer(t *testing.T) serial.Port {
 	t.Helper()
 
@@ -38,32 +44,11 @@ func openHWBreakPeer(t *testing.T) serial.Port {
 		t.Skip("skipping hardware break test in short mode")
 	}
 
-	// go.bug.st/serial puts the port in raw mode, where a break reads as a
-	// lone \0 that's indistinguishable from data, and takes exclusive
-	// access to it. Termios settings belong to the tty rather than to a
-	// descriptor, so one opened beforehand can turn on PARMRK afterwards.
-	fd, err := unix.Open(hwFlowControlPortB, unix.O_RDWR|unix.O_NOCTTY|unix.O_NONBLOCK|unix.O_CLOEXEC, 0)
-	if err != nil {
-		t.Fatalf("failed to open %s: %v", hwFlowControlPortB, err)
-	}
-	defer unix.Close(fd)
-
 	b, err := serial.Open(hwFlowControlPortB, &serial.Mode{BaudRate: hwFlowControlBaudRate, DataBits: 8})
 	if err != nil {
 		t.Fatalf("failed to open %s: %v", hwFlowControlPortB, err)
 	}
 	t.Cleanup(func() { b.Close() })
-
-	termios, err := unix.IoctlGetTermios(fd, unix.TCGETS)
-	if err != nil {
-		t.Fatalf("failed to get termios: %v", err)
-	}
-	termios.Iflag &^= unix.IGNBRK | unix.BRKINT
-	termios.Iflag |= unix.PARMRK
-	err = unix.IoctlSetTermios(fd, unix.TCSETS, termios)
-	if err != nil {
-		t.Fatalf("failed to set termios: %v", err)
-	}
 
 	err = b.SetReadTimeout(10 * time.Millisecond)
 	if err != nil {
@@ -95,12 +80,12 @@ func openHWBreakPortUnderTest(t *testing.T, breakBeforeSend time.Duration) *Port
 	return p
 }
 
-// breakPayload returns n bytes containing neither \0 nor \377, so neither
-// can be mistaken for part of a break marker.
+// breakPayload returns n bytes containing no \0, so none can be mistaken
+// for a break.
 func breakPayload(n int) []byte {
 	data := make([]byte, n)
 	for i := range data {
-		data[i] = byte(1 + i%254)
+		data[i] = byte(1 + i%255)
 	}
 
 	return data
@@ -113,6 +98,7 @@ func TestHWBreakBeforeSendPrecedesEachWrite(t *testing.T) {
 	p := openHWBreakPortUnderTest(t, 10*time.Millisecond)
 
 	payload := breakPayload(64)
+	want := append([]byte{hwBreakChar}, payload...)
 
 	for i := range 2 {
 		_, err := p.Write(payload)
@@ -120,7 +106,6 @@ func TestHWBreakBeforeSendPrecedesEachWrite(t *testing.T) {
 			t.Fatalf("write %d failed: %v", i, err)
 		}
 
-		want := append(append([]byte{}, hwBreakMarker...), payload...)
 		got := readFor(t, peer.Read, len(want), time.Second)
 		if !bytes.Equal(got, want) {
 			t.Fatalf("write %d: expected a break followed by the %d-byte payload, got % X",
@@ -147,7 +132,7 @@ func TestHWBreakBeforeSendOffSendsNoBreak(t *testing.T) {
 		t.Fatalf("unexpected write error: %v", err)
 	}
 
-	got := readFor(t, peer.Read, len(payload)+len(hwBreakMarker), 300*time.Millisecond)
+	got := readFor(t, peer.Read, len(payload)+1, 300*time.Millisecond)
 	if !bytes.Equal(got, payload) {
 		t.Errorf("expected only the %d-byte payload, got % X", len(payload), got)
 	}

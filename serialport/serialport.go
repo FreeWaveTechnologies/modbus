@@ -7,6 +7,8 @@ package serialport
 import (
 	"errors"
 	"fmt"
+	"io"
+	"syscall"
 	"time"
 
 	"go.bug.st/serial"
@@ -169,7 +171,7 @@ func (p *Port) Write(txbuf []byte) (cnt int, err error) {
 		// let earlier output leave the wire first, so the delay is
 		// measured from the end of the previous transmission and the
 		// break can't truncate it
-		err = p.port.Drain()
+		err = retryInterrupted(p.port.Drain)
 		if err != nil {
 			return
 		}
@@ -180,13 +182,55 @@ func (p *Port) Write(txbuf []byte) (cnt int, err error) {
 	}
 
 	if p.conf.BreakBeforeSend > 0 {
-		err = p.port.Break(p.conf.BreakBeforeSend)
+		// an interrupted Break is retried whole, as go.bug.st/serial doesn't
+		// say whether it was setting or clearing the break: that may make
+		// this break up to twice as long, but never leaves the line in one
+		err = retryInterrupted(func() error { return p.port.Break(p.conf.BreakBeforeSend) })
 		if err != nil {
 			return
 		}
 	}
 
-	cnt, err = p.port.Write(txbuf)
+	cnt, err = writeAll(p.port, txbuf)
+
+	return
+}
+
+// retryInterrupted calls f until it returns something other than EINTR.
+//
+// go.bug.st/serial's Drain, Break and Write are each a bare system call
+// that returns EINTR when a signal interrupts it, and the Go runtime
+// signals threads routinely (e.g. SIGURG for goroutine preemption), so any
+// of them that blocks for long is regularly interrupted.
+func retryInterrupted(f func() error) (err error) {
+	for {
+		err = f()
+		if !errors.Is(err, syscall.EINTR) {
+			return
+		}
+	}
+}
+
+// writeAll writes all of txbuf to port, carrying on after a signal
+// interrupts the write - either before anything is written (EINTR), or
+// part way through (a short count and no error).
+func writeAll(port serial.Port, txbuf []byte) (cnt int, err error) {
+	for cnt < len(txbuf) {
+		var n int
+
+		err = retryInterrupted(func() (err error) {
+			n, err = port.Write(txbuf[cnt:])
+			return
+		})
+		cnt += n
+		if err != nil {
+			return
+		}
+		if n == 0 {
+			err = io.ErrShortWrite
+			return
+		}
+	}
 
 	return
 }

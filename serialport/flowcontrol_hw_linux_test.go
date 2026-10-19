@@ -271,11 +271,11 @@ func TestHWFlowControlDropsRTSWhenReceiveBufferFills(t *testing.T) {
 	throttled := false
 
 	for sent < len(data) {
-		_, err := peer.Write(data[sent : sent+chunk])
+		_, err := writeAll(peer, data[sent:sent+chunk])
 		if err != nil {
 			t.Fatalf("peer write failed: %v", err)
 		}
-		err = peer.Drain()
+		err = retryInterrupted(peer.Drain)
 		if err != nil {
 			t.Fatalf("peer drain failed: %v", err)
 		}
